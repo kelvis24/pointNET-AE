@@ -70,10 +70,9 @@ class PointCloudProcessor:
         return [self.resample_point_cloud(pc, self.min_points) for pc in point_clouds]
 
 
-
 if __name__ == "__main__":
     # Example usage:
-    point_clouds_directory = './simple-3d-objects'
+    point_clouds_directory = '/Users/elviskimara/Downloads/PointNET Baseline/data'
     processor = PointCloudProcessor(point_clouds_directory)
 
     for i, point_cloud in enumerate(processor.point_clouds):
