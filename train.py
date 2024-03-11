@@ -2,20 +2,17 @@ import torch
 import torch.nn as nn
 from torch.optim import Adam
 import matplotlib.pyplot as plt
-# Import necessary libraries
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 from plyfile import PlyData
-import os
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from torch.optim import Adam
 from sklearn.decomposition import PCA
 from torch.optim import Adam
 from PointCloudProcessor import PointCloudProcessor
-
 from model import PointNetAutoencoder
 
 class Train:

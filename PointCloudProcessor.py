@@ -10,7 +10,6 @@ from mpl_toolkits.mplot3d import Axes3D
 from torch.optim import Adam
 from sklearn.decomposition import PCA
 from torch.optim import Adam
-device="cuda"
 
 class PointCloudProcessor:
     def __init__(self, point_clouds_directory):
