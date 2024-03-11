@@ -33,7 +33,7 @@ def main():
     print("Training on all point clouds...")
     trainer = Train()
 
-    model_trained_on_all_pointclouds = trainer.train_and_visualize_on_multiple_point_clouds(
+    model_trained_on_all_pointclouds = trainer.train_and_visualize_on_multiple_point_clouds_using_chamfer_distance_loss(
         processor.point_clouds, 
         num_points=config["min_points"], 
         latent_size=config["train_dim"], 
@@ -55,7 +55,7 @@ def main():
     # Example for plotting loss convergence for different latent sizes (if implemented in your Train class)
     latent_sizes = config["test_dims"]
     point_cloud_index = 0  # For demonstration; adjust as needed
-    trainer.plot_loss_convergence_for_latent_sizes(
+    trainer.plot_loss_convergence_for_latent_sizes_using_log(
         latent_sizes, 
         config["min_points"], 
         processor.point_clouds, 

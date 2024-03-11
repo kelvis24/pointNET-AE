@@ -214,6 +214,75 @@ class Train:
         else:
           pass
 
+    def plot_loss_convergence_for_latent_sizes_using_log(self, latent_sizes, min_points, point_clouds, point_cloud_index, epochs=100, lr=0.001):
+        loss_records = {}
+
+        for latent_size in latent_sizes:
+            print(f"Training with latent size: {latent_size}")
+            # Assuming the autoencoder model can be re-initialized with different latent sizes
+            autoencoder = PointNetAutoencoder(num_points=min_points, latent_size=latent_size).to(self.device)
+
+            losses = self.train_and_return_losses(autoencoder, point_clouds[point_cloud_index] , epochs, lr)
+            loss_records[latent_size] = losses
+
+        plt.figure(figsize=(10, 7))
+        for latent_size, losses in loss_records.items():
+            log_losses = np.log(losses)  # Calculate the logarithm of the losses
+            plt.plot(log_losses, label=f'Latent Size {latent_size}')
+        plt.xlabel('Epoch')
+        plt.ylabel('Log of Loss')
+        plt.title('Log of Loss Convergence for Different Latent Sizes')
+        plt.legend()
+        plt.show()
+      
+    def chamfer_distance(self, pc1, pc2):
+        """
+        Calculate the Chamfer Distance between two point clouds
+        """
+        pc1 = pc1.unsqueeze(1)  # (B, 1, N, 3)
+        pc2 = pc2.unsqueeze(2)  # (B, M, 1, 3)
+        
+        # Compute squared distance between each points
+        dist = torch.sum((pc1 - pc2) ** 2, dim=-1)  # (B, N, M)
+        
+        # For each point in pc1, find the closest point in pc2 and vice versa
+        min_dist_pc1, _ = torch.min(dist, dim=2)  # (B, N)
+        min_dist_pc2, _ = torch.min(dist, dim=1)  # (B, M)
+        
+        # Calculate mean minimum distance
+        chamfer_dist = torch.mean(min_dist_pc1, dim=1) + torch.mean(min_dist_pc2, dim=1)  # (B,)
+        return chamfer_dist.mean()  # Reduce to mean distance for the batch
+
+
+    # Update the loss function in your training routine
+    def train_and_visualize_on_multiple_point_clouds_using_chamfer_distance_loss(self, point_clouds, num_points=500, latent_size=218, epochs=100, lr=0.001, visualize_every_n_epochs=20, condition=False):
+        for pc_index, point_cloud in enumerate(point_clouds):
+            autoencoder = PointNetAutoencoder(num_points, latent_size).to(self.device)
+            optimizer = Adam(autoencoder.parameters(), lr=lr)
+            point_cloud_tensor = point_cloud.unsqueeze(0).to(self.device)  # Add batch dimension
+
+            print(f"Training Point Cloud {pc_index + 1}/{len(point_clouds)}")
+
+            for epoch in range(epochs):
+                # Forward pass
+                reconstructed, _ = autoencoder(point_cloud_tensor)
+                loss = self.chamfer_distance(reconstructed, point_cloud_tensor)
+
+                # Backward pass and optimize
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+
+                if (epoch + 1) % visualize_every_n_epochs == 0 or epoch == epochs - 1:
+                    print(f"Epoch {epoch + 1}, Loss: {loss.item()}")
+                    with torch.no_grad():
+                        reconstructed, _ = autoencoder(point_cloud_tensor)
+                        self.visualize_reconstruction(point_cloud_tensor.squeeze().cpu().numpy(),
+                                                    reconstructed.squeeze().cpu().numpy(),
+                                                    "Original", "Reconstructed", condition)
+
+        return autoencoder
+
 
 def main():
     # Initialize the training class
