@@ -1,10 +1,22 @@
 import argparse
 import json
+from matplotlib import pyplot as plt
+import numpy as np
 import torch
 from PointCloudProcessor import PointCloudProcessor
 from model import PointNetAutoencoder
 from train import Train
 
+def plot_point_cloud(points, title="Point Cloud"):
+    """
+    Plots a 3D point cloud.
+    """
+    fig = plt.figure(figsize=(8, 6))
+    ax = fig.add_subplot(111, projection='3d')
+    ax.scatter(points[:, 0], points[:, 1], points[:, 2], s=1)
+    ax.set_title(title)
+    plt.show()
+    
 def main():
     # Set up basic command-line argument parsing
     parser = argparse.ArgumentParser(description="Process and visualize point clouds.")
@@ -33,7 +45,7 @@ def main():
     print("Training on all point clouds...")
     trainer = Train()
 
-    model_trained_on_all_pointclouds = trainer.train_and_visualize_on_multiple_point_clouds_using_chamfer_distance_loss(
+    model_trained_on_all_pointclouds = trainer.train_and_visualize_on_multiple_point_clouds(
         processor.point_clouds, 
         num_points=config["min_points"], 
         latent_size=config["train_dim"], 
@@ -51,6 +63,27 @@ def main():
     latent_representation = trainer.encode_point_cloud(model_trained_on_all_pointclouds, test_point_cloud.to(device))
     print("Latent vector shape of the test point cloud:", latent_representation.shape)
     print("Latent vector representation of the test point cloud:", latent_representation)
+    
+    # After obtaining latent_representation...
+    print("Latent vector shape of the test point cloud:", latent_representation.shape)
+    
+    # Ensure latent_representation is a PyTorch tensor
+    if isinstance(latent_representation, np.ndarray):
+        latent_representation = torch.tensor(latent_representation).float().to(device)
+    
+    # Decode latent representation back to point cloud
+    reconstructed_point_cloud = trainer.decode_latent_representation(
+        model_trained_on_all_pointclouds, latent_representation.unsqueeze(0))  # Now you can unsqueeze
+
+    # Convert to numpy for plotting
+    reconstructed_point_cloud_np = reconstructed_point_cloud.squeeze().cpu().numpy()
+
+    # Plot the original test point cloud and the reconstructed one
+    test_point_cloud_np = test_point_cloud.cpu().numpy()
+    # plot_point_cloud(test_point_cloud_np, title="Original Test Point Cloud")
+    # plot_point_cloud(reconstructed_point_cloud_np, title="Reconstructed from Latent Representation")
+
+
 
     # Example for plotting loss convergence for different latent sizes (if implemented in your Train class)
     latent_sizes = config["test_dims"]

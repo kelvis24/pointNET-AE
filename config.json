@@ -4,9 +4,9 @@
     "train_dim": 128,
     "test_dims": [64, 128, 256, 512, 1024, 2048],
     "min_points": 500,
-    "epochs": 50,
+    "epochs": 100,
     "lr": 0.001,
-    "visualize_every_n_epochs": 10,
-    "visualize_training": "False",
+    "visualize_every_n_epochs": 20,
+    "visualize_training": "True",
     "test_pointcloud_path": "/Users/elviskimara/Downloads/PointNET Baseline/data/sphere_point_cloud.ply"
 }

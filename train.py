@@ -235,6 +235,16 @@ class Train:
         plt.legend()
         plt.show()
       
+    def decode_latent_representation(self, autoencoder, latent_representation):
+        """
+        Reconstructs point cloud from its latent representation using the decoder part of the autoencoder.
+        """
+        # Assuming latent_representation is already on the correct device and correctly shaped
+        with torch.no_grad():
+            autoencoder.eval()  # Ensure the model is in evaluation mode
+            reconstructed = autoencoder.decoder(latent_representation)
+            return reconstructed
+        
     def chamfer_distance(self, pc1, pc2):
         """
         Calculate the Chamfer Distance between two point clouds
