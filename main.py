@@ -41,6 +41,7 @@ def main():
         for i, point_cloud in enumerate(processor.point_clouds):
             processor.plot_point_cloud(point_cloud, title=f"Point Cloud {i + 1}")
             
+    processor.plot_original_sizes_distribution()
     
     min_points = config.get("min_points", "")  
     if not min_points:  # This checks both for an empty string and for the key not existing
