@@ -7,6 +7,6 @@
     "epochs": 400,
     "lr": 0.001,
     "visualize_every_n_epochs": 50,
-    "visualize_training": "False",
+    "visualize_training": "True",
     "test_pointcloud_path": "/Users/elviskimara/Downloads/PointNET Baseline/data/B73-selected/plant2.ply"
 }

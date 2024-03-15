@@ -1,7 +1,4 @@
-# Import necessary libraries
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 import numpy as np
 from plyfile import PlyData
 import os
@@ -14,12 +11,32 @@ from torch.optim import Adam
 class PointCloudProcessor:
     def __init__(self, point_clouds_directory):
         self.point_clouds_directory = point_clouds_directory
+        self.original_sizes = []  # To store original sizes of point clouds
         self.point_clouds = self.load_and_preprocess_point_clouds()
 
     def load_point_cloud_from_ply(self, file_path):
         ply_data = PlyData.read(file_path)
         points = np.column_stack((ply_data['vertex']['x'], ply_data['vertex']['y'], ply_data['vertex']['z']))
         return torch.tensor(points, dtype=torch.float)
+
+    def load_and_preprocess_point_clouds(self):
+        point_cloud_files = [f for f in os.listdir(self.point_clouds_directory) if f.endswith('.ply')]
+        point_clouds = [self.load_point_cloud_from_ply(os.path.join(self.point_clouds_directory, f)) for f in point_cloud_files]
+        
+        # Store original sizes before resampling
+        self.original_sizes = [pc.shape[0] for pc in point_clouds]
+
+        # Resample all point clouds to have the same number of points
+        self.min_points = min(pc.shape[0] for pc in point_clouds)
+        return [self.resample_point_cloud(pc, self.min_points) for pc in point_clouds]
+
+    def plot_original_sizes_distribution(self):
+        plt.figure(figsize=(8, 6))
+        plt.bar(range(len(self.original_sizes)), self.original_sizes)
+        plt.xlabel('Point Cloud Index')
+        plt.ylabel('Original Point Cloud Size')
+        plt.title('Original Point Cloud Sizes')
+        plt.show()
 
     def resample_point_cloud(self, point_cloud, num_points):
         if len(point_cloud) == num_points:
@@ -60,15 +77,6 @@ class PointCloudProcessor:
 
         plt.show()
 
-    def load_and_preprocess_point_clouds(self):
-        point_cloud_files = [f for f in os.listdir(self.point_clouds_directory) if f.endswith('.ply')]
-        point_clouds = [self.load_point_cloud_from_ply(os.path.join(self.point_clouds_directory, f)) for f in point_cloud_files]
-
-        # Resample all point clouds to have the same number of points
-        self.min_points = min(pc.shape[0] for pc in point_clouds)
-        return [self.resample_point_cloud(pc, self.min_points) for pc in point_clouds]
-
-
 if __name__ == "__main__":
     # Example usage:
     point_clouds_directory = '/Users/elviskimara/Downloads/PointNET Baseline/data'
@@ -76,3 +84,6 @@ if __name__ == "__main__":
 
     for i, point_cloud in enumerate(processor.point_clouds):
         processor.plot_point_cloud(point_cloud, title=f"Point Cloud {i + 1}")
+   
+    # Plot the distribution of original sizes of point clouds
+    processor.plot_original_sizes_distribution()
